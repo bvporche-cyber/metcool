@@ -361,18 +361,40 @@
         const result = document.getElementById('cityResult');
         result.innerHTML = `<div class="city-placeholder">⏳ Recherche en cours…</div>`;
         try {
-            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=fr&format=json`);
+            // API officielle française : accepte noms composés ET codes postaux
+            const geoRes = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&type=municipality&limit=1`);
             const geoData = await geoRes.json();
-            if (!geoData.results || geoData.results.length === 0) {
-                result.innerHTML = `<div class="city-placeholder">❌ Ville non trouvée.<br>Essaie un autre nom.</div>`;
+            if (!geoData.features || geoData.features.length === 0) {
+                result.innerHTML = `<div class="city-placeholder">❌ Ville non trouvée.<br>Essaie un autre nom ou code postal.</div>`;
                 return;
             }
-            const place = geoData.results[0];
-            const cityName = place.name + (place.admin1 ? `, ${place.admin1}` : "");
-            await loadCityData(place.latitude, place.longitude, cityName);
+            const place = geoData.features[0];
+            const cityName = place.properties.label;
+            const lon = place.geometry.coordinates[0];
+            const lat = place.geometry.coordinates[1];
+            await loadCityData(lat, lon, cityName);
         } catch(e) {
             result.innerHTML = `<div class="city-placeholder">❌ Erreur réseau.<br>Réessaie.</div>`;
         }
+    }
+
+    function openCityDetail(dayIndex) {
+        if (!cityData) return;
+        const modal = document.getElementById('detailModal');
+        const body = document.getElementById('modalBody');
+        document.getElementById('modalTitle').innerText = daysArr[new Date(cityData.daily.time[dayIndex]).getDay()];
+        body.innerHTML = "";
+        const start = dayIndex * 24;
+        for (let i = start; i < start + 24; i += 2) {
+            body.innerHTML += `
+                <div style="background:var(--glass); padding:12px; border-radius:12px; text-align:center; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size:0.85rem; opacity:0.6;">${cityData.hourly.time[i].split('T')[1]}</div>
+                    <div style="font-size:1.6rem; margin:5px 0;">${getSexyIcon(cityData.hourly.weather_code[i])}</div>
+                    <div style="font-weight:bold; font-size:1.1rem;">${Math.round(cityData.hourly.temperature_2m[i])}°</div>
+                    <div style="font-size:0.75rem; color:#00d4ff; margin-top:3px;">💧 ${cityData.hourly.precipitation_probability[i]}%</div>
+                </div>`;
+        }
+        modal.style.display = "flex";
     }
 
     async function loadCityData(lat, lon, cityName) {
@@ -401,14 +423,14 @@
                 </div>`;
             }
 
-            // 7 jours
+            // 7 jours (cliquables → openCityDetail)
             let daysHTML = "";
             for (let i = 0; i < 7; i++) {
                 const date = new Date(cityData.daily.time[i]);
                 const rain = cityData.daily.precipitation_sum[i];
                 const rainDisplay = rain > 0 ? `💧${rain.toFixed(1)}` : "";
                 const wDir = cityData.daily.wind_direction_10m_dominant[i];
-                daysHTML += `<div class="city-day-row">
+                daysHTML += `<div class="city-day-row" onclick="openCityDetail(${i})" style="cursor:pointer;">
                     <span style="width:40px;font-weight:bold;">${daysArr[date.getDay()].substring(0,3)}</span>
                     <span style="font-size:1.4rem;">${getSexyIcon(cityData.daily.weather_code[i])}</span>
                     <span style="color:#00d4ff;font-size:0.85rem;min-width:55px;text-align:right;">${rainDisplay}</span>
