@@ -222,7 +222,7 @@
     function renderBaro() {
         if (!weatherData) return;
 
-        const hpa = Math.round(weatherData.current.pressure_msl);
+        const hpa = Math.round(weatherData.current.surface_pressure);
         document.getElementById('baroVal').innerText = hpa;
 
         const angle = pressureToAngle(hpa);
@@ -241,7 +241,7 @@
         for (let offset = -6; offset <= 0; offset += 2) {
             const idx = currentHour + offset;
             if (idx < 0) continue;
-            const p = Math.round(weatherData.hourly.pressure_msl[idx]);
+            const p = Math.round(weatherData.hourly.surface_pressure[idx]);
             const h = weatherData.hourly.time[idx]?.split('T')[1] ?? "--";
             const arrow = offset === 0 ? "" : (p < hpa ? " ↘" : p > hpa ? " ↗" : " →");
             trend.innerHTML += `
@@ -279,8 +279,8 @@
     async function loadData(lat, lon) {
         try {
             const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
-                + `&current=temperature_2m,wind_speed_10m,wind_direction_10m,pressure_msl`
-                + `&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,pressure_msl`
+                + `&current=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure`
+                + `&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure`
                 + `&daily=weather_code,temperature_2m_max,precipitation_sum,wind_direction_10m_dominant`
                 + `&timezone=auto`;
             const res = await fetch(url);
