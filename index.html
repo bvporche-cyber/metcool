@@ -83,7 +83,12 @@
         .city-day-row { display: flex; justify-content: space-between; align-items: center; background: var(--glass); margin-bottom: 7px; padding: 11px 16px; border-radius: 18px; width: 100%; box-sizing: border-box; }
         .city-placeholder { opacity: 0.4; font-size: 1rem; margin-top: 30px; text-align: center; line-height: 1.8; }
 
-        /* PAGE 5 : SATELLITE */
+        /* MENTIONS LÉGALES */
+        .legal-btn { position: absolute; top: 20px; left: 20px; background: var(--glass); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 44px; height: 44px; font-size: 1.2rem; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; }
+        #legalModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); z-index: 100; flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .legal-body { max-width: 500px; margin: 0 auto; line-height: 1.6; font-size: 0.95rem; opacity: 0.9; padding-bottom: 40px; }
+        .legal-body h3 { color: #00d4ff; letter-spacing: 1px; margin-top: 24px; margin-bottom: 8px; font-size: 1rem; }
+        .legal-body p { margin: 0 0 10px 0; }
         .sat-screen { padding: 0 0 max(85px, env(safe-area-inset-bottom)) 0; box-sizing: border-box; background: #000; }
         #satFrame { width: 100%; height: calc(100dvh - max(85px, env(safe-area-inset-bottom))); border: none; display: block; }
         .sat-title { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 20px; letter-spacing: 3px; font-size: 0.85rem; font-weight: bold; color: #00d4ff; z-index: 5; }
@@ -92,6 +97,36 @@
 <body>
 
 <button class="refresh-btn" onclick="fetchWeather()">🔄</button>
+<button class="legal-btn" onclick="openLegal()">ℹ️</button>
+
+<div id="legalModal">
+    <button class="close-btn" onclick="closeLegal()" style="align-self:flex-end;">×</button>
+    <div class="legal-body">
+        <h2 style="color:#ffcc00; letter-spacing:2px; margin-top:0;">Confidentialité & Mentions légales</h2>
+
+        <h3>QUI GÈRE CETTE APPLICATION ?</h3>
+        <p>MetCool est une application personnelle, développée et gérée par un particulier (Bruno Apps), sans finalité commerciale.</p>
+
+        <h3>LOCALISATION</h3>
+        <p>Ta position GPS n'est utilisée que pour afficher la météo, la carte satellite et le nom de la ville correspondant à l'endroit où tu te trouves. Elle est demandée par ton navigateur, qui te demande ton accord avant de la transmettre — tu peux refuser à tout moment, l'app affichera alors la météo de Faux-Villecerf par défaut.</p>
+
+        <h3>OÙ VONT TES DONNÉES ?</h3>
+        <p>Ta position (latitude/longitude) est envoyée directement depuis ton téléphone vers ces services, sans passer par un serveur intermédiaire :</p>
+        <p>• <b>Open-Meteo</b> — prévisions météo<br>
+        • <b>BigDataCloud</b> — nom de la ville la plus proche<br>
+        • <b>api-adresse.data.gouv.fr</b> — recherche de ville (service public français)<br>
+        • <b>Windy.com</b> — carte satellite</p>
+
+        <h3>STOCKAGE</h3>
+        <p>Aucune donnée n'est stockée par MetCool. Rien n'est enregistré, ni sur un serveur, ni dans une base de données. Chaque session repart de zéro.</p>
+
+        <h3>COOKIES / TRACEURS</h3>
+        <p>MetCool n'utilise aucun cookie de suivi ni outil publicitaire.</p>
+
+        <h3>CONTACT</h3>
+        <p>Pour toute question, tu peux contacter le développeur via GitHub.</p>
+    </div>
+</div>
 
 <div id="detailModal">
     <button class="close-btn" onclick="closeDetail()">×</button>
@@ -213,6 +248,10 @@
         if (code >= 95) return "⛈️";
         return "☁️";
     }
+
+    // --- MENTIONS LÉGALES ---
+    function openLegal() { document.getElementById('legalModal').style.display = "flex"; }
+    function closeLegal() { document.getElementById('legalModal').style.display = "none"; }
 
     // --- SATELLITE ---
     function updateSatellite(lat, lon) {
