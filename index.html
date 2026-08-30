@@ -91,7 +91,31 @@
         .legal-body p { margin: 0 0 10px 0; }
         .sat-screen { padding: 0 0 max(85px, env(safe-area-inset-bottom)) 0; box-sizing: border-box; background: #000; }
         #satFrame { width: 100%; height: calc(100dvh - max(85px, env(safe-area-inset-bottom))); border: none; display: block; }
-        .sat-title { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 20px; letter-spacing: 3px; font-size: 0.85rem; font-weight: bold; color: #00d4ff; z-index: 5; }
+        .sat-title { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 20px; letter-spacing: 3px; font-size: 0.85rem; font-weight: bold; color: #00d4ff; z-index: 5; white-space: nowrap; }
+
+        /* BOUTON RETOUR ACCUEIL (page satellite) */
+        .home-btn {
+            position: absolute;
+            bottom: calc(max(85px, env(safe-area-inset-bottom)) + 16px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 212, 255, 0.85);
+            border: none;
+            color: #1a2a6c;
+            border-radius: 30px;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+        }
+        .home-btn:active { transform: translateX(-50%) scale(0.96); }
     </style>
 </head>
 <body>
@@ -134,9 +158,9 @@
     <div class="modal-content" id="modalBody"></div>
 </div>
 
-<div class="app-wrapper">
+<div class="app-wrapper" id="appWrapper">
     <!-- PAGE 1 : LE COQ ET LE VENT -->
-    <section>
+    <section id="page1">
         <div class="main-grid">
             <div class="column-side" id="morningList"></div>
             <div class="center-info">
@@ -167,7 +191,7 @@
         <div id="forecastList" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
     </section>
 
-    <!-- PAGE 4 : VILLE -->
+    <!-- PAGE 3 : VILLE -->
     <section class="city-screen">
         <div class="city-search-bar">
             <input class="city-input" id="cityInput" type="text" placeholder="Ex : Lyon, Troyes, Bordeaux…" 
@@ -179,7 +203,7 @@
         </div>
     </section>
 
-    <!-- PAGE 3 : BAROMÈTRE -->
+    <!-- PAGE 4 : BAROMÈTRE -->
     <section class="baro-screen">
         <div class="baro-title">Baromètre</div>
 
@@ -234,6 +258,8 @@
     <section class="sat-screen">
         <div class="sat-title">☁️ SATELLITE</div>
         <iframe id="satFrame" src="" loading="lazy" allowfullscreen></iframe>
+        <!-- BOUTON RETOUR ACCUEIL -->
+        <button class="home-btn" onclick="goHome()">🏠 Accueil</button>
     </section>
 </div>
 
@@ -249,6 +275,11 @@
         return "☁️";
     }
 
+    // --- RETOUR ACCUEIL ---
+    function goHome() {
+        document.getElementById('appWrapper').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     // --- MENTIONS LÉGALES ---
     function openLegal() { document.getElementById('legalModal').style.display = "flex"; }
     function closeLegal() { document.getElementById('legalModal').style.display = "none"; }
@@ -261,7 +292,6 @@
 
     // --- BAROMÈTRE ---
     function pressureToAngle(hpa) {
-        // 960 hPa → -90°  /  1050 hPa → +90°
         const min = 960, max = 1050;
         const clamped = Math.max(min, Math.min(max, hpa));
         return -90 + ((clamped - min) / (max - min)) * 180;
@@ -289,7 +319,6 @@
         labelEl.innerText = lbl.text;
         labelEl.style.color = lbl.color;
 
-        // Tendance : heures 0, 2, 4, 6
         const trend = document.getElementById('baroTrend');
         trend.innerHTML = "";
         const now = new Date();
@@ -421,7 +450,6 @@
         const result = document.getElementById('cityResult');
         result.innerHTML = `<div class="city-placeholder">⏳ Recherche en cours…</div>`;
         try {
-            // API officielle française : accepte noms composés ET codes postaux
             const geoRes = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&type=municipality&limit=1`);
             const geoData = await geoRes.json();
             if (!geoData.features || geoData.features.length === 0) {
@@ -474,7 +502,6 @@
             const windDir = cityData.current.wind_direction_10m;
             const pressure = Math.round(cityData.current.surface_pressure);
 
-            // Heures du jour (0h à 22h par pas de 2)
             let hoursHTML = "";
             for (let i = 0; i <= 22; i += 2) {
                 const h = cityData.hourly.time[i].split('T')[1];
@@ -485,7 +512,6 @@
                 </div>`;
             }
 
-            // 7 jours (cliquables → openCityDetail)
             let daysHTML = "";
             for (let i = 0; i < 7; i++) {
                 const date = new Date(cityData.daily.time[i]);
